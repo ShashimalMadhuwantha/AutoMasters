@@ -1,5 +1,7 @@
 package com.automasters.ui;
 
+import com.automasters.util.ReceiptPrinter;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -95,6 +97,20 @@ public class MainFrame extends JFrame {
 
         sidebar.add(Box.createVerticalGlue());
 
+        // Test Print button
+        JButton testPrintBtn = new JButton("Test Printer");
+        testPrintBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        testPrintBtn.setForeground(Color.WHITE);
+        testPrintBtn.setBackground(new Color(107, 114, 128));
+        testPrintBtn.setBorderPainted(false);
+        testPrintBtn.setFocusPainted(false);
+        testPrintBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        testPrintBtn.setMaximumSize(new Dimension(180, 35));
+        testPrintBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        testPrintBtn.addActionListener(e -> testPrinter());
+        sidebar.add(testPrintBtn);
+        sidebar.add(Box.createVerticalStrut(10));
+
         // Footer
         JLabel footerLabel = new JLabel("© 2026 AutoMasters");
         footerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -138,5 +154,45 @@ public class MainFrame extends JFrame {
     private void updateButtonStyles(JButton active, JButton inactive) {
         active.setBackground(new Color(59, 130, 246));
         inactive.setBackground(new Color(30, 41, 59));
+    }
+
+    private void testPrinter() {
+        // Show available printers
+        String[] printers = ReceiptPrinter.getAvailablePrinters();
+        
+        StringBuilder message = new StringBuilder();
+        message.append("Available Printers:\n\n");
+        
+        if (printers.length == 0) {
+            message.append("No printers found!\n");
+        } else {
+            for (int i = 0; i < printers.length; i++) {
+                message.append((i + 1) + ". " + printers[i] + "\n");
+            }
+        }
+        
+        message.append("\nDo you want to print a test receipt?");
+        
+        int result = JOptionPane.showConfirmDialog(this, 
+                message.toString(), 
+                "Test Printer", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        
+        if (result == JOptionPane.YES_OPTION) {
+            try {
+                ReceiptPrinter printer = new ReceiptPrinter();
+                printer.testPrint();
+                JOptionPane.showMessageDialog(this, 
+                        "Test print sent successfully!\nCheck your printer.", 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                        "Print failed: " + e.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

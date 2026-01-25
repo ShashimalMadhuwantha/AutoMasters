@@ -3,6 +3,7 @@ package com.automasters.ui;
 import com.automasters.dao.InvoiceDAO;
 import com.automasters.entity.Invoice;
 import com.automasters.entity.InvoiceItem;
+import com.automasters.util.ReceiptPrinter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -222,6 +223,11 @@ public class InvoicePanel extends JPanel {
         saveButton.addActionListener(e -> saveInvoice());
         buttonsPanel.add(saveButton);
 
+        JButton savePrintButton = createButton("Save & Print", new Color(16, 185, 129));
+        savePrintButton.setPreferredSize(new Dimension(150, 40));
+        savePrintButton.addActionListener(e -> saveAndPrintInvoice());
+        buttonsPanel.add(savePrintButton);
+
         footer.add(buttonsPanel, BorderLayout.SOUTH);
 
         return footer;
@@ -318,7 +324,7 @@ public class InvoicePanel extends JPanel {
         totalLabel.setText(String.format("Rs. %.2f", total));
     }
 
-    private void saveInvoice() {
+    private Invoice createInvoiceFromForm() {
         String customerName = customerNameField.getText().trim();
         String contactNumber = contactNumberField.getText().trim();
         String vehicleNumber = vehicleNumberField.getText().trim();
@@ -326,34 +332,63 @@ public class InvoicePanel extends JPanel {
         if (customerName.isEmpty() || contactNumber.isEmpty() || vehicleNumber.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all customer details.",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return;
+            return null;
         }
 
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Please add at least one service.",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return;
+            return null;
         }
 
+        Invoice invoice = new Invoice(
+                invoiceNumberField.getText(),
+                customerName,
+                contactNumber,
+                vehicleNumber.toUpperCase()
+        );
+
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            int srlNo = (int) tableModel.getValueAt(i, 0);
+            String description = tableModel.getValueAt(i, 1).toString();
+            double price = Double.parseDouble(tableModel.getValueAt(i, 2).toString());
+            invoice.addItem(new InvoiceItem(srlNo, description, price));
+        }
+
+        return invoice;
+    }
+
+    private void saveInvoice() {
+        Invoice invoice = createInvoiceFromForm();
+        if (invoice == null) return;
+
         try {
-            Invoice invoice = new Invoice(
-                    invoiceNumberField.getText(),
-                    customerName,
-                    contactNumber,
-                    vehicleNumber.toUpperCase()
-            );
-
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                int srlNo = (int) tableModel.getValueAt(i, 0);
-                String description = tableModel.getValueAt(i, 1).toString();
-                double price = Double.parseDouble(tableModel.getValueAt(i, 2).toString());
-                invoice.addItem(new InvoiceItem(srlNo, description, price));
-            }
-
             invoiceDAO.save(invoice);
 
             JOptionPane.showMessageDialog(this,
                     "Invoice " + invoice.getInvoiceNumber() + " saved successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            clearForm();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error saving invoice: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void saveAndPrintInvoice() {
+        Invoice invoice = createInvoiceFromForm();
+        if (invoice == null) return;
+
+        try {
+            invoiceDAO.save(invoice);
+
+            // Print receipt
+            ReceiptPrinter printer = new ReceiptPrinter();
+            printer.printInvoice(invoice);
+
+            JOptionPane.showMessageDialog(this,
+                    "Invoice " + invoice.getInvoiceNumber() + " saved and printed successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
 
             clearForm();
