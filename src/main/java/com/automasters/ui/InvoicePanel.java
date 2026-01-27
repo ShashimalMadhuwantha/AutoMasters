@@ -20,6 +20,7 @@ public class InvoicePanel extends JPanel {
     private JTextField customerNameField;
     private JTextField contactNumberField;
     private JTextField vehicleNumberField;
+    private JTextField mileageField;
     private JTextField descriptionField;
     private JTextField priceField;
     private JLabel totalLabel;
@@ -69,18 +70,18 @@ public class InvoicePanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(25, 25, 25, 25)
-        ));
+                new EmptyBorder(25, 25, 25, 25)));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(8, 10, 8, 10);
 
         // Row 1: Invoice Number and Date
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         card.add(createLabel("Invoice Number"), gbc);
         gbc.gridx = 1;
-        invoiceNumberField = createTextField(false);
+        invoiceNumberField = createTextField(true);
         card.add(invoiceNumberField, gbc);
 
         gbc.gridx = 2;
@@ -90,7 +91,8 @@ public class InvoicePanel extends JPanel {
         card.add(dateField, gbc);
 
         // Row 2: Customer Name and Contact
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         card.add(createLabel("Customer Name"), gbc);
         gbc.gridx = 1;
         customerNameField = createTextField(true);
@@ -102,12 +104,19 @@ public class InvoicePanel extends JPanel {
         contactNumberField = createTextField(true);
         card.add(contactNumberField, gbc);
 
-        // Row 3: Vehicle Number
-        gbc.gridx = 0; gbc.gridy = 2;
+        // Row 3: Vehicle Number and Mileage
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         card.add(createLabel("Vehicle Number"), gbc);
         gbc.gridx = 1;
         vehicleNumberField = createTextField(true);
         card.add(vehicleNumberField, gbc);
+
+        gbc.gridx = 2;
+        card.add(createLabel("Current Mileage (km)"), gbc);
+        gbc.gridx = 3;
+        mileageField = createTextField(true);
+        card.add(mileageField, gbc);
 
         return card;
     }
@@ -121,18 +130,31 @@ public class InvoicePanel extends JPanel {
         addServiceCard.setBackground(Color.WHITE);
         addServiceCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 20, 15, 20)
-        ));
+                new EmptyBorder(15, 20, 15, 20)));
 
         addServiceCard.add(createLabel("Description"));
         descriptionField = new JTextField(25);
         styleTextField(descriptionField);
+        descriptionField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    addService();
+                }
+            }
+        });
         addServiceCard.add(descriptionField);
 
         addServiceCard.add(Box.createHorizontalStrut(10));
         addServiceCard.add(createLabel("Price (Rs.)"));
         priceField = new JTextField(10);
         styleTextField(priceField);
+        priceField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    addService();
+                }
+            }
+        });
         addServiceCard.add(priceField);
 
         addServiceCard.add(Box.createHorizontalStrut(10));
@@ -143,7 +165,7 @@ public class InvoicePanel extends JPanel {
         panel.add(addServiceCard, BorderLayout.NORTH);
 
         // Services table
-        String[] columns = {"Srl No", "Description", "Price (Rs.)", "Action"};
+        String[] columns = { "Srl No", "Description", "Price (Rs.)", "Action" };
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -195,8 +217,7 @@ public class InvoicePanel extends JPanel {
         totalPanel.setBackground(Color.WHITE);
         totalPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 25, 15, 25)
-        ));
+                new EmptyBorder(15, 25, 15, 25)));
 
         JLabel totalTextLabel = new JLabel("Total Amount:");
         totalTextLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -254,8 +275,7 @@ public class InvoicePanel extends JPanel {
         field.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         field.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(203, 213, 225), 1),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
     }
 
     private JButton createButton(String text, Color bgColor) {
@@ -270,8 +290,22 @@ public class InvoicePanel extends JPanel {
         return button;
     }
 
+    // Public method to refresh data from database
+    public void refresh() {
+        generateNewInvoice();
+    }
+
     private void generateNewInvoice() {
-        invoiceNumberField.setText(invoiceDAO.generateNextInvoiceNumber());
+        String invoiceNumber = invoiceDAO.generateNextInvoiceNumber();
+        invoiceNumberField.setText(invoiceNumber);
+
+        // Make invoice number editable only for first invoice
+        boolean isFirst = invoiceDAO.isFirstInvoice();
+        invoiceNumberField.setEditable(isFirst);
+        if (!isFirst) {
+            invoiceNumberField.setBackground(new Color(248, 250, 252));
+        }
+
         updateDateTime();
         serialCounter = 1;
     }
@@ -282,25 +316,52 @@ public class InvoicePanel extends JPanel {
     }
 
     private void addService() {
+        // Validate all customer fields are filled first
+        if (!validateCustomerFields()) {
+            return;
+        }
+
         String description = descriptionField.getText().trim();
         String priceText = priceField.getText().trim();
 
-        if (description.isEmpty() || priceText.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter description and price.",
+        if (description.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a service description.",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
+            descriptionField.requestFocus();
+            return;
+        }
+
+        if (description.length() < 3) {
+            JOptionPane.showMessageDialog(this, "Description must be at least 3 characters.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            descriptionField.requestFocus();
+            return;
+        }
+
+        if (priceText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter the service price.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            priceField.requestFocus();
             return;
         }
 
         try {
             double price = Double.parseDouble(priceText);
-            tableModel.addRow(new Object[]{serialCounter++, description, String.format("%.2f", price), "Remove"});
+            if (price <= 0) {
+                JOptionPane.showMessageDialog(this, "Price must be greater than zero.",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
+                priceField.requestFocus();
+                return;
+            }
+            tableModel.addRow(new Object[] { serialCounter++, description, String.format("%.2f", price), "Remove" });
             descriptionField.setText("");
             priceField.setText("");
             descriptionField.requestFocus();
             updateTotal();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid price.",
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric price.",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
+            priceField.requestFocus();
         }
     }
 
@@ -325,13 +386,68 @@ public class InvoicePanel extends JPanel {
     }
 
     private Invoice createInvoiceFromForm() {
+        String invoiceNumber = invoiceNumberField.getText().trim();
         String customerName = customerNameField.getText().trim();
         String contactNumber = contactNumberField.getText().trim();
         String vehicleNumber = vehicleNumberField.getText().trim();
+        String mileageText = mileageField.getText().trim();
 
-        if (customerName.isEmpty() || contactNumber.isEmpty() || vehicleNumber.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all customer details.",
+        // Validate invoice number format
+        if (!validateInvoiceNumber(invoiceNumber)) {
+            return null;
+        }
+
+        // Validate all required fields
+        if (customerName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter customer name.",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
+            customerNameField.requestFocus();
+            return null;
+        }
+
+        if (contactNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter contact number.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            contactNumberField.requestFocus();
+            return null;
+        }
+
+        // Validate contact number format (10 digits)
+        if (!contactNumber.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this, "Contact number must be exactly 10 digits.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            contactNumberField.requestFocus();
+            return null;
+        }
+
+        if (vehicleNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter vehicle number.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            vehicleNumberField.requestFocus();
+            return null;
+        }
+
+        // Mileage is now required
+        if (mileageText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter current mileage.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            mileageField.requestFocus();
+            return null;
+        }
+
+        Integer currentMileage = null;
+        try {
+            currentMileage = Integer.parseInt(mileageText);
+            if (currentMileage < 0) {
+                JOptionPane.showMessageDialog(this, "Mileage must be a positive number.",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
+                mileageField.requestFocus();
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid mileage value.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            mileageField.requestFocus();
             return null;
         }
 
@@ -342,12 +458,11 @@ public class InvoicePanel extends JPanel {
         }
 
         Invoice invoice = new Invoice(
-                invoiceNumberField.getText(),
+                invoiceNumber,
                 customerName,
                 contactNumber,
-                vehicleNumber.toUpperCase()
-        );
-
+                vehicleNumber.toUpperCase(),
+                currentMileage);
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             int srlNo = (int) tableModel.getValueAt(i, 0);
             String description = tableModel.getValueAt(i, 1).toString();
@@ -360,7 +475,8 @@ public class InvoicePanel extends JPanel {
 
     private void saveInvoice() {
         Invoice invoice = createInvoiceFromForm();
-        if (invoice == null) return;
+        if (invoice == null)
+            return;
 
         try {
             invoiceDAO.save(invoice);
@@ -378,7 +494,8 @@ public class InvoicePanel extends JPanel {
 
     private void saveAndPrintInvoice() {
         Invoice invoice = createInvoiceFromForm();
-        if (invoice == null) return;
+        if (invoice == null)
+            return;
 
         try {
             invoiceDAO.save(invoice);
@@ -402,11 +519,97 @@ public class InvoicePanel extends JPanel {
         customerNameField.setText("");
         contactNumberField.setText("");
         vehicleNumberField.setText("");
+        mileageField.setText("");
         descriptionField.setText("");
         priceField.setText("");
         tableModel.setRowCount(0);
         totalLabel.setText("Rs. 0.00");
         generateNewInvoice();
+    }
+
+    // Validation Methods
+    private boolean validateCustomerFields() {
+        String invoiceNumber = invoiceNumberField.getText().trim();
+        String customerName = customerNameField.getText().trim();
+        String contactNumber = contactNumberField.getText().trim();
+        String vehicleNumber = vehicleNumberField.getText().trim();
+        String mileageText = mileageField.getText().trim();
+
+        if (!validateInvoiceNumber(invoiceNumber)) {
+            return false;
+        }
+
+        if (customerName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter customer name first.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            customerNameField.requestFocus();
+            return false;
+        }
+
+        if (contactNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter contact number first.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            contactNumberField.requestFocus();
+            return false;
+        }
+
+        if (!contactNumber.matches("\\d{10}")) {
+            JOptionPane.showMessageDialog(this, "Contact number must be exactly 10 digits.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            contactNumberField.requestFocus();
+            return false;
+        }
+
+        if (vehicleNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter vehicle number first.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            vehicleNumberField.requestFocus();
+            return false;
+        }
+
+        if (mileageText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter current mileage first.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            mileageField.requestFocus();
+            return false;
+        }
+
+        try {
+            int mileage = Integer.parseInt(mileageText);
+            if (mileage < 0) {
+                JOptionPane.showMessageDialog(this, "Mileage must be a positive number.",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
+                mileageField.requestFocus();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid mileage value.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            mileageField.requestFocus();
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validateInvoiceNumber(String invoiceNumber) {
+        if (invoiceNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Invoice number cannot be empty.",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            invoiceNumberField.requestFocus();
+            return false;
+        }
+
+        // Validate format: INV-XXXXX (5 digits)
+        if (!invoiceNumber.matches("INV-\\d{5}")) {
+            JOptionPane.showMessageDialog(this,
+                    "Invoice number must be in format INV-XXXXX (5 digits).\nExample: INV-00001",
+                    "Validation Error", JOptionPane.WARNING_MESSAGE);
+            invoiceNumberField.requestFocus();
+            return false;
+        }
+
+        return true;
     }
 
     // Button Renderer for table

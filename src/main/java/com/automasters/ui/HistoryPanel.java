@@ -72,8 +72,7 @@ public class HistoryPanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
+                new EmptyBorder(10, 20, 10, 20)));
 
         JLabel searchLabel = new JLabel("Search Vehicle Number:");
         searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -84,8 +83,7 @@ public class HistoryPanel extends JPanel {
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(203, 213, 225), 1),
-                new EmptyBorder(10, 15, 10, 15)
-        ));
+                new EmptyBorder(10, 15, 10, 15)));
         searchField.addActionListener(e -> searchVehicle());
         card.add(searchField);
 
@@ -103,20 +101,28 @@ public class HistoryPanel extends JPanel {
         return card;
     }
 
+    // Public method to refresh data from database
+    public void refresh() {
+        // Clear search and results
+        searchField.setText("");
+        invoicesTableModel.setRowCount(0);
+        detailsTableModel.setRowCount(0);
+    }
+
     private JPanel createInvoicesPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
+                new EmptyBorder(15, 15, 15, 15)));
 
         JLabel titleLabel = new JLabel("Invoices");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(new Color(30, 41, 59));
         panel.add(titleLabel, BorderLayout.NORTH);
 
-        String[] columns = {"Invoice No", "Date & Time", "Customer Name", "Contact", "Vehicle No", "Total (Rs.)"};
+        String[] columns = { "Invoice No", "Date & Time", "Customer Name", "Contact", "Vehicle No", "Mileage (km)",
+                "Total (Rs.)" };
         invoicesTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -161,8 +167,7 @@ public class HistoryPanel extends JPanel {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
+                new EmptyBorder(15, 15, 15, 15)));
 
         // Header with customer info
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -181,7 +186,7 @@ public class HistoryPanel extends JPanel {
         panel.add(headerPanel, BorderLayout.NORTH);
 
         // Services table
-        String[] columns = {"Srl No", "Description", "Price (Rs.)"};
+        String[] columns = { "Srl No", "Description", "Price (Rs.)" };
         detailsTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -251,12 +256,17 @@ public class HistoryPanel extends JPanel {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
             for (Invoice invoice : invoices) {
-                invoicesTableModel.addRow(new Object[]{
+                String mileageDisplay = invoice.getCurrentMileage() != null
+                        ? String.format("%,d", invoice.getCurrentMileage())
+                        : "-";
+
+                invoicesTableModel.addRow(new Object[] {
                         invoice.getInvoiceNumber(),
                         invoice.getInvoiceDate().format(formatter),
                         invoice.getCustomerName(),
                         invoice.getContactNumber(),
                         invoice.getVehicleNumber(),
+                        mileageDisplay,
                         String.format("%.2f", invoice.getTotalAmount())
                 });
             }
@@ -273,7 +283,8 @@ public class HistoryPanel extends JPanel {
     @SuppressWarnings("unchecked")
     private void showInvoiceDetails(int row) {
         List<Invoice> invoices = (List<Invoice>) invoicesTable.getClientProperty("invoices");
-        if (invoices == null || row >= invoices.size()) return;
+        if (invoices == null || row >= invoices.size())
+            return;
 
         Invoice invoice = invoices.get(row);
 
@@ -285,7 +296,7 @@ public class HistoryPanel extends JPanel {
         detailsTableModel.setRowCount(0);
 
         for (InvoiceItem item : invoice.getItems()) {
-            detailsTableModel.addRow(new Object[]{
+            detailsTableModel.addRow(new Object[] {
                     item.getSerialNumber(),
                     item.getDescription(),
                     String.format("%.2f", item.getPrice())
