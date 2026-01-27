@@ -23,5 +23,8 @@
         <!-- Entity mappings -->
         <mapping class="com.automasters.entity.Invoice"/>
         <mapping class="com.automasters.entity.InvoiceItem"/>
+        <mapping class="com.automasters.entity.Item"/>
+        <mapping class="com.automasters.entity.StockBatch"/>
+        <mapping class="com.automasters.entity.StockTransaction"/>
     </session-factory>
 </hibernate-configuration>

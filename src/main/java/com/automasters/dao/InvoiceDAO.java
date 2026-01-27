@@ -37,7 +37,36 @@ public class InvoiceDAO {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Long count = session.createQuery("SELECT COUNT(i) FROM Invoice i", Long.class)
                     .uniqueResult();
-            return String.format("INV-%06d", count + 1);
+
+            if (count == 0) {
+                // First invoice - return default, user can edit
+                return "INV-00001";
+            } else {
+                // Get the last invoice number and increment
+                String lastInvoiceNumber = session.createQuery(
+                        "SELECT i.invoiceNumber FROM Invoice i ORDER BY i.id DESC",
+                        String.class)
+                        .setMaxResults(1)
+                        .uniqueResult();
+
+                // Extract number from format INV-XXXXX
+                if (lastInvoiceNumber != null && lastInvoiceNumber.startsWith("INV-")) {
+                    String numberPart = lastInvoiceNumber.substring(4);
+                    int nextNumber = Integer.parseInt(numberPart) + 1;
+                    return String.format("INV-%05d", nextNumber);
+                }
+
+                // Fallback if format is unexpected
+                return String.format("INV-%06d", count + 1);
+            }
+        }
+    }
+
+    public boolean isFirstInvoice() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Long count = session.createQuery("SELECT COUNT(i) FROM Invoice i", Long.class)
+                    .uniqueResult();
+            return count == 0;
         }
     }
 

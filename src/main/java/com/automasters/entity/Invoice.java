@@ -28,6 +28,9 @@ public class Invoice {
     @Column(name = "vehicle_number", nullable = false)
     private String vehicleNumber;
 
+    @Column(name = "current_mileage")
+    private Integer currentMileage;
+
     @Column(name = "total_amount", nullable = false)
     private double totalAmount;
 
@@ -38,12 +41,14 @@ public class Invoice {
         this.invoiceDate = LocalDateTime.now();
     }
 
-    public Invoice(String invoiceNumber, String customerName, String contactNumber, String vehicleNumber) {
+    public Invoice(String invoiceNumber, String customerName, String contactNumber, String vehicleNumber,
+            Integer currentMileage) {
         this.invoiceNumber = invoiceNumber;
         this.invoiceDate = LocalDateTime.now();
         this.customerName = customerName;
         this.contactNumber = contactNumber;
         this.vehicleNumber = vehicleNumber;
+        this.currentMileage = currentMileage;
         this.totalAmount = 0.0;
     }
 
@@ -112,6 +117,14 @@ public class Invoice {
 
     public void setVehicleNumber(String vehicleNumber) {
         this.vehicleNumber = vehicleNumber;
+    }
+
+    public Integer getCurrentMileage() {
+        return currentMileage;
+    }
+
+    public void setCurrentMileage(Integer currentMileage) {
+        this.currentMileage = currentMileage;
     }
 
     public double getTotalAmount() {
