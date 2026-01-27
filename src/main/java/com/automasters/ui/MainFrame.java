@@ -16,6 +16,11 @@ public class MainFrame extends JFrame {
     private StockOutPanel stockOutPanel;
     private StockHistoryPanel stockHistoryPanel;
     private InventoryOverviewPanel inventoryOverviewPanel;
+    private ItemManagementPanel itemManagementPanel;
+    private StockInPanel stockInPanel;
+    private StockOutPanel stockOutPanel;
+    private StockHistoryPanel stockHistoryPanel;
+    private InventoryOverviewPanel inventoryOverviewPanel;
 
     public MainFrame() {
         initializeUI();
@@ -25,6 +30,8 @@ public class MainFrame extends JFrame {
         setTitle("AutoMasters - Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 600));
+        setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
@@ -48,9 +55,19 @@ public class MainFrame extends JFrame {
         stockOutPanel = new StockOutPanel();
         stockHistoryPanel = new StockHistoryPanel();
         inventoryOverviewPanel = new InventoryOverviewPanel();
+        itemManagementPanel = new ItemManagementPanel();
+        stockInPanel = new StockInPanel();
+        stockOutPanel = new StockOutPanel();
+        stockHistoryPanel = new StockHistoryPanel();
+        inventoryOverviewPanel = new InventoryOverviewPanel();
 
         mainPanel.add(invoicePanel, "INVOICE");
         mainPanel.add(historyPanel, "HISTORY");
+        mainPanel.add(itemManagementPanel, "ITEMS");
+        mainPanel.add(stockInPanel, "STOCK_IN");
+        mainPanel.add(stockOutPanel, "STOCK_OUT");
+        mainPanel.add(stockHistoryPanel, "STOCK_HISTORY");
+        mainPanel.add(inventoryOverviewPanel, "INVENTORY");
         mainPanel.add(itemManagementPanel, "ITEMS");
         mainPanel.add(stockInPanel, "STOCK_IN");
         mainPanel.add(stockOutPanel, "STOCK_OUT");
@@ -100,10 +117,17 @@ public class MainFrame extends JFrame {
         JButton stockOutBtn = createNavButton("📤 Stock Out", false);
         JButton stockHistoryBtn = createNavButton("📊 Stock History", false);
         JButton inventoryBtn = createNavButton("📋 Inventory Overview", false);
+        JButton itemsBtn = createNavButton("📦 Item Management", false);
+        JButton stockInBtn = createNavButton("📥 Stock In", false);
+        JButton stockOutBtn = createNavButton("📤 Stock Out", false);
+        JButton stockHistoryBtn = createNavButton("📊 Stock History", false);
+        JButton inventoryBtn = createNavButton("📋 Inventory Overview", false);
 
         invoiceBtn.addActionListener(e -> {
             invoicePanel.refresh();
             cardLayout.show(mainPanel, "INVOICE");
+            updateButtonStyles(invoiceBtn, historyBtn, itemsBtn, stockInBtn, stockOutBtn, stockHistoryBtn,
+                    inventoryBtn);
             updateButtonStyles(invoiceBtn, historyBtn, itemsBtn, stockInBtn, stockOutBtn, stockHistoryBtn,
                     inventoryBtn);
         });
@@ -153,6 +177,18 @@ public class MainFrame extends JFrame {
         sidebar.add(invoiceBtn);
         sidebar.add(Box.createVerticalStrut(5));
         sidebar.add(historyBtn);
+        sidebar.add(Box.createVerticalStrut(15));
+        sidebar.add(createSectionLabel("Stock Management"));
+        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(itemsBtn);
+        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(stockInBtn);
+        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(stockOutBtn);
+        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(stockHistoryBtn);
+        sidebar.add(Box.createVerticalStrut(5));
+        sidebar.add(inventoryBtn);
         sidebar.add(Box.createVerticalStrut(15));
         sidebar.add(createSectionLabel("Stock Management"));
         sidebar.add(Box.createVerticalStrut(5));
@@ -240,14 +276,34 @@ public class MainFrame extends JFrame {
         label.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
         label.setMaximumSize(new Dimension(220, 20));
         return label;
+    private void updateButtonStyles(JButton activeButton, JButton... otherButtons) {
+        activeButton.setBackground(new Color(59, 130, 246));
+        activeButton.setForeground(Color.WHITE);
+
+        for (JButton button : otherButtons) {
+            button.setBackground(new Color(30, 41, 59));
+            button.setForeground(new Color(203, 213, 225));
+        }
+    }
+
+    private JLabel createSectionLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        label.setForeground(new Color(148, 163, 184));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+        label.setMaximumSize(new Dimension(220, 20));
+        return label;
     }
 
     private void testPrinter() {
         // Show available printers
         String[] printers = ReceiptPrinter.getAvailablePrinters();
 
+
         StringBuilder message = new StringBuilder();
         message.append("Available Printers:\n\n");
+
 
         if (printers.length == 0) {
             message.append("No printers found!\n");
@@ -257,13 +313,19 @@ public class MainFrame extends JFrame {
             }
         }
 
+
         message.append("\nDo you want to print a test receipt?");
+
+        int result = JOptionPane.showConfirmDialog(this,
+                message.toString(),
+                "Test Printer",
 
         int result = JOptionPane.showConfirmDialog(this,
                 message.toString(),
                 "Test Printer",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
+
 
         if (result == JOptionPane.YES_OPTION) {
             try {
@@ -272,8 +334,14 @@ public class MainFrame extends JFrame {
                 JOptionPane.showMessageDialog(this,
                         "Test print sent successfully!\nCheck your printer.",
                         "Success",
+                JOptionPane.showMessageDialog(this,
+                        "Test print sent successfully!\nCheck your printer.",
+                        "Success",
                         JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Print failed: " + e.getMessage(),
+                        "Error",
                 JOptionPane.showMessageDialog(this,
                         "Print failed: " + e.getMessage(),
                         "Error",
