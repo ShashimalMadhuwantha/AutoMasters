@@ -17,20 +17,20 @@ import java.time.format.DateTimeFormatter;
 public class ReceiptPrinter {
 
     // ESC/POS Commands
-    private static final byte[] INIT = {0x1B, 0x40}; // Initialize printer
-    private static final byte[] CUT_PAPER = {0x1D, 0x56, 0x00}; // Full cut
-    private static final byte[] FEED_LINE = {0x0A}; // Line feed
-    private static final byte[] ALIGN_CENTER = {0x1B, 0x61, 0x01};
-    private static final byte[] ALIGN_LEFT = {0x1B, 0x61, 0x00};
-    private static final byte[] ALIGN_RIGHT = {0x1B, 0x61, 0x02};
-    private static final byte[] BOLD_ON = {0x1B, 0x45, 0x01};
-    private static final byte[] BOLD_OFF = {0x1B, 0x45, 0x00};
-    private static final byte[] DOUBLE_HEIGHT_ON = {0x1B, 0x21, 0x10};
-    private static final byte[] DOUBLE_WIDTH_ON = {0x1B, 0x21, 0x20};
-    private static final byte[] DOUBLE_SIZE_ON = {0x1B, 0x21, 0x30};
-    private static final byte[] NORMAL_SIZE = {0x1B, 0x21, 0x00};
+    private static final byte[] INIT = { 0x1B, 0x40 }; // Initialize printer
+    private static final byte[] CUT_PAPER = { 0x1D, 0x56, 0x00 }; // Full cut
+    private static final byte[] FEED_LINE = { 0x0A }; // Line feed
+    private static final byte[] ALIGN_CENTER = { 0x1B, 0x61, 0x01 };
+    private static final byte[] ALIGN_LEFT = { 0x1B, 0x61, 0x00 };
+    private static final byte[] ALIGN_RIGHT = { 0x1B, 0x61, 0x02 };
+    private static final byte[] BOLD_ON = { 0x1B, 0x45, 0x01 };
+    private static final byte[] BOLD_OFF = { 0x1B, 0x45, 0x00 };
+    private static final byte[] DOUBLE_HEIGHT_ON = { 0x1B, 0x21, 0x10 };
+    private static final byte[] DOUBLE_WIDTH_ON = { 0x1B, 0x21, 0x20 };
+    private static final byte[] DOUBLE_SIZE_ON = { 0x1B, 0x21, 0x30 };
+    private static final byte[] NORMAL_SIZE = { 0x1B, 0x21, 0x00 };
 
-    private static final int LINE_WIDTH = 42; // Characters per line for TM-U220D
+    private static final int LINE_WIDTH = 32; // Adjusted for 2.5 inch (approx 32 chars)
 
     private String printerName;
 
@@ -53,9 +53,11 @@ public class ReceiptPrinter {
 
         // Header - Company name
         baos.write(ALIGN_CENTER);
-        baos.write(DOUBLE_SIZE_ON);
-        baos.write("AUTOMASTERS\n".getBytes());
-        baos.write(NORMAL_SIZE);
+        // Header on single line - remove DOUBLE_WIDTH
+        baos.write(DOUBLE_HEIGHT_ON);
+        baos.write(BOLD_ON);
+        baos.write("GALLEAUTO SERVICE\n".getBytes());
+        baos.write(NORMAL_SIZE); // Reset
         baos.write("Vehicle Service Center\n".getBytes());
         baos.write(createLine('-'));
         baos.write(FEED_LINE);
@@ -66,34 +68,41 @@ public class ReceiptPrinter {
         baos.write(String.format("Invoice: %s\n", invoice.getInvoiceNumber()).getBytes());
         baos.write(BOLD_OFF);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         baos.write(String.format("Date: %s\n", invoice.getInvoiceDate().format(formatter)).getBytes());
         baos.write(FEED_LINE);
 
         // Customer details
         baos.write(createLine('-'));
-        baos.write(String.format("Customer: %s\n", invoice.getCustomerName()).getBytes());
-        baos.write(String.format("Contact: %s\n", invoice.getContactNumber()).getBytes());
+        // Adjusted for 32 chars
+        baos.write(String.format("Cust : %-22s\n", invoice.getCustomerName()).getBytes());
+        baos.write(String.format("Tel  : %-22s\n", invoice.getContactNumber()).getBytes());
         baos.write(BOLD_ON);
-        baos.write(String.format("Vehicle: %s\n", invoice.getVehicleNumber()).getBytes());
+        baos.write(String.format("Veh  : %-22s\n", invoice.getVehicleNumber()).getBytes());
+        if (invoice.getCurrentMileage() != null && invoice.getCurrentMileage() > 0) {
+            baos.write(String.format("Mil  : %,d km\n", invoice.getCurrentMileage()).getBytes());
+        }
         baos.write(BOLD_OFF);
         baos.write(createLine('-'));
         baos.write(FEED_LINE);
 
         // Services header
         baos.write(BOLD_ON);
-        baos.write(formatLine("No", "Description", "Amount").getBytes());
+        // Layout: Description (21) | Amount (10) | Space (1) = 32
+        baos.write(String.format("%-21s %10s\n", "Description", "Amount").getBytes());
         baos.write(BOLD_OFF);
         baos.write(createLine('-'));
 
         // Service items
         for (InvoiceItem item : invoice.getItems()) {
-            String line = formatServiceLine(
-                    String.valueOf(item.getSerialNumber()),
-                    item.getDescription(),
-                    String.format("%.2f", item.getPrice())
-            );
-            baos.write(line.getBytes());
+            String desc = item.getDescription();
+            String price = String.format("%.2f", item.getPrice());
+
+            if (desc.length() > 21) {
+                // Truncate to fit column
+                desc = desc.substring(0, 19) + "..";
+            }
+            baos.write(String.format("%-21s %10s\n", desc, price).getBytes());
         }
 
         baos.write(createLine('-'));
@@ -103,7 +112,8 @@ public class ReceiptPrinter {
         baos.write(ALIGN_RIGHT);
         baos.write(BOLD_ON);
         baos.write(DOUBLE_HEIGHT_ON);
-        baos.write(String.format("TOTAL: Rs. %.2f\n", invoice.getTotalAmount()).getBytes());
+        // Adjusted width for simple alignment
+        baos.write(String.format("TOTAL: %10.2f\n", invoice.getTotalAmount()).getBytes());
         baos.write(NORMAL_SIZE);
         baos.write(BOLD_OFF);
         baos.write(FEED_LINE);
@@ -111,7 +121,7 @@ public class ReceiptPrinter {
         // Footer
         baos.write(ALIGN_CENTER);
         baos.write(createLine('-'));
-        baos.write("Thank you for your business!\n".getBytes());
+        baos.write("Thank you!\n".getBytes());
         baos.write("Visit us again\n".getBytes());
         baos.write(FEED_LINE);
         baos.write(FEED_LINE);
@@ -122,24 +132,6 @@ public class ReceiptPrinter {
 
         // Send to printer
         printRaw(baos.toByteArray());
-    }
-
-    /**
-     * Format a header line with 3 columns
-     */
-    private String formatLine(String col1, String col2, String col3) {
-        return String.format("%-3s %-28s %8s\n", col1, col2, col3);
-    }
-
-    /**
-     * Format service line, handling long descriptions
-     */
-    private String formatServiceLine(String no, String description, String amount) {
-        int descMaxLen = 28;
-        if (description.length() > descMaxLen) {
-            description = description.substring(0, descMaxLen - 2) + "..";
-        }
-        return String.format("%-3s %-28s %8s\n", no, description, amount);
     }
 
     /**
@@ -220,7 +212,7 @@ public class ReceiptPrinter {
         baos.write(INIT);
         baos.write(ALIGN_CENTER);
         baos.write(DOUBLE_SIZE_ON);
-        baos.write("AUTOMASTERS\n".getBytes());
+        baos.write("GALLEAUTO SERVICE\n".getBytes());
         baos.write(NORMAL_SIZE);
         baos.write("Printer Test\n".getBytes());
         baos.write(createLine('-'));

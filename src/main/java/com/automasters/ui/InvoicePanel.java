@@ -600,10 +600,10 @@ public class InvoicePanel extends JPanel {
             return false;
         }
 
-        // Validate format: INV-XXXXX (5 digits)
-        if (!invoiceNumber.matches("INV-\\d{5}")) {
+        // Validate format: INV-XXXXXXX (7 digits)
+        if (!invoiceNumber.matches("INV-\\d{7}")) {
             JOptionPane.showMessageDialog(this,
-                    "Invoice number must be in format INV-XXXXX (5 digits).\nExample: INV-00001",
+                    "Invoice number must be in format INV-XXXXXXX (7 digits).\nExample: INV-0000001",
                     "Validation Error", JOptionPane.WARNING_MESSAGE);
             invoiceNumberField.requestFocus();
             return false;

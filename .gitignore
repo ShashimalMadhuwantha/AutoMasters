@@ -41,3 +41,7 @@ Thumbs.db
 
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
+
+create-installer.ps1
+.tools
+jre

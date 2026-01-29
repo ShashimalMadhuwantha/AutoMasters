@@ -19,10 +19,22 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         initializeUI();
+        loadWindowIcon();
+    }
+
+    private void loadWindowIcon() {
+        try {
+            java.net.URL iconUrl = getClass().getResource("/app-icon.png");
+            if (iconUrl != null) {
+                setIconImage(new ImageIcon(iconUrl).getImage());
+            }
+        } catch (Exception e) {
+            System.err.println("Could not load window icon: " + e.getMessage());
+        }
     }
 
     private void initializeUI() {
-        setTitle("AutoMasters - Billing System");
+        setTitle("GalleAuto Service - Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
@@ -77,7 +89,7 @@ public class MainFrame extends JFrame {
         logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
         logoPanel.setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));
 
-        JLabel titleLabel = new JLabel("AutoMasters");
+        JLabel titleLabel = new JLabel("GalleAuto Service");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -185,7 +197,7 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createVerticalStrut(10));
 
         // Footer
-        JLabel footerLabel = new JLabel("© 2026 AutoMasters");
+        JLabel footerLabel = new JLabel("© 2026 GalleAuto Service");
         footerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         footerLabel.setForeground(new Color(100, 116, 139));
         footerLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

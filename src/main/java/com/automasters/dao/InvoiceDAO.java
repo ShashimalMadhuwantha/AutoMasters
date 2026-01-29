@@ -53,11 +53,11 @@ public class InvoiceDAO {
                 if (lastInvoiceNumber != null && lastInvoiceNumber.startsWith("INV-")) {
                     String numberPart = lastInvoiceNumber.substring(4);
                     int nextNumber = Integer.parseInt(numberPart) + 1;
-                    return String.format("INV-%05d", nextNumber);
+                    return String.format("INV-%07d", nextNumber);
                 }
 
                 // Fallback if format is unexpected
-                return String.format("INV-%06d", count + 1);
+                return String.format("INV-%07d", count + 1);
             }
         }
     }
