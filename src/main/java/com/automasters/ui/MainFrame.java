@@ -16,6 +16,7 @@ public class MainFrame extends JFrame {
     private StockOutPanel stockOutPanel;
     private StockHistoryPanel stockHistoryPanel;
     private InventoryOverviewPanel inventoryOverviewPanel;
+    private DailyInvoiceReportPanel dailyReportPanel;
 
     public MainFrame() {
         initializeUI();
@@ -63,6 +64,8 @@ public class MainFrame extends JFrame {
         stockHistoryPanel = new StockHistoryPanel();
         inventoryOverviewPanel = new InventoryOverviewPanel();
 
+        dailyReportPanel = new DailyInvoiceReportPanel();
+
         mainPanel.add(invoicePanel, "INVOICE");
         mainPanel.add(historyPanel, "HISTORY");
         mainPanel.add(itemManagementPanel, "ITEMS");
@@ -70,7 +73,7 @@ public class MainFrame extends JFrame {
         mainPanel.add(stockOutPanel, "STOCK_OUT");
         mainPanel.add(stockHistoryPanel, "STOCK_HISTORY");
         mainPanel.add(inventoryOverviewPanel, "INVENTORY");
-        mainPanel.add(new DailyInvoiceReportPanel(), "DAILY_REPORT");
+        mainPanel.add(dailyReportPanel, "DAILY_REPORT");
 
         container.add(mainPanel, BorderLayout.CENTER);
 
@@ -188,10 +191,8 @@ public class MainFrame extends JFrame {
 
         JButton dailyReportBtn = createNavButton("📅 Daily Report", false);
         dailyReportBtn.addActionListener(e -> {
+            dailyReportPanel.refreshData();
             cardLayout.show(mainPanel, "DAILY_REPORT");
-            // Simple refresh if needed, though panel does it on load
-            // updateButtonStyles(dailyReportBtn, ...); // We'd need to update the varargs
-            // helper or just manually reset others if strict about highlighting
             updateButtonStyles(dailyReportBtn, invoiceBtn, historyBtn, itemsBtn, stockInBtn, stockOutBtn,
                     stockHistoryBtn, inventoryBtn);
         });
