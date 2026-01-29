@@ -5,6 +5,8 @@ import com.automasters.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class InvoiceDAO {
@@ -30,6 +32,64 @@ public class InvoiceDAO {
                     Invoice.class)
                     .setParameter("vehicleNumber", "%" + vehicleNumber + "%")
                     .list();
+        }
+    }
+
+    public List<Invoice> findByDateRange(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "FROM Invoice i WHERE i.invoiceDate >= :startOfDay AND i.invoiceDate < :endOfDay ORDER BY i.invoiceDate DESC",
+                    Invoice.class)
+                    .setParameter("startOfDay", startOfDay)
+                    .setParameter("endOfDay", endOfDay)
+                    .list();
+        }
+    }
+
+    public List<Invoice> findByDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                    "FROM Invoice i WHERE i.invoiceDate >= :startDateTime AND i.invoiceDate < :endDateTime ORDER BY i.invoiceDate DESC",
+                    Invoice.class)
+                    .setParameter("startDateTime", startDateTime)
+                    .setParameter("endDateTime", endDateTime)
+                    .list();
+        }
+    }
+
+    public double calculateTotalIncome(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Double total = session.createQuery(
+                    "SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.invoiceDate >= :startOfDay AND i.invoiceDate < :endOfDay",
+                    Double.class)
+                    .setParameter("startOfDay", startOfDay)
+                    .setParameter("endOfDay", endOfDay)
+                    .uniqueResult();
+            return total != null ? total : 0.0;
+        }
+    }
+
+    public double calculateTotalIncome(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Double total = session.createQuery(
+                    "SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.invoiceDate >= :startDateTime AND i.invoiceDate < :endDateTime",
+                    Double.class)
+                    .setParameter("startDateTime", startDateTime)
+                    .setParameter("endDateTime", endDateTime)
+                    .uniqueResult();
+            return total != null ? total : 0.0;
         }
     }
 

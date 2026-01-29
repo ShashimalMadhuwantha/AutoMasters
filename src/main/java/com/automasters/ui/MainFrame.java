@@ -70,6 +70,7 @@ public class MainFrame extends JFrame {
         mainPanel.add(stockOutPanel, "STOCK_OUT");
         mainPanel.add(stockHistoryPanel, "STOCK_HISTORY");
         mainPanel.add(inventoryOverviewPanel, "INVENTORY");
+        mainPanel.add(new DailyInvoiceReportPanel(), "DAILY_REPORT");
 
         container.add(mainPanel, BorderLayout.CENTER);
 
@@ -179,6 +180,22 @@ public class MainFrame extends JFrame {
         sidebar.add(stockHistoryBtn);
         sidebar.add(Box.createVerticalStrut(5));
         sidebar.add(inventoryBtn);
+        sidebar.add(Box.createVerticalStrut(15));
+
+        // Reports Section
+        sidebar.add(createSectionLabel("Reports"));
+        sidebar.add(Box.createVerticalStrut(5));
+
+        JButton dailyReportBtn = createNavButton("📅 Daily Report", false);
+        dailyReportBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "DAILY_REPORT");
+            // Simple refresh if needed, though panel does it on load
+            // updateButtonStyles(dailyReportBtn, ...); // We'd need to update the varargs
+            // helper or just manually reset others if strict about highlighting
+            updateButtonStyles(dailyReportBtn, invoiceBtn, historyBtn, itemsBtn, stockInBtn, stockOutBtn,
+                    stockHistoryBtn, inventoryBtn);
+        });
+        sidebar.add(dailyReportBtn);
 
         sidebar.add(Box.createVerticalGlue());
 
