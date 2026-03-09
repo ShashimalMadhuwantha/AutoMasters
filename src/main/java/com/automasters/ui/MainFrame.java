@@ -35,7 +35,7 @@ public class MainFrame extends JFrame {
     }
 
     private void initializeUI() {
-        setTitle("GalleAuto Service - Billing System");
+        setTitle("Sampath Auto Care - Billing System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
@@ -89,12 +89,12 @@ public class MainFrame extends JFrame {
         // Logo/Title
         JPanel logoPanel = new JPanel();
         logoPanel.setBackground(new Color(30, 41, 59));
-        logoPanel.setMaximumSize(new Dimension(220, 100));
+        logoPanel.setMaximumSize(new Dimension(220, 120));
         logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
         logoPanel.setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));
 
-        JLabel titleLabel = new JLabel("GalleAuto Service");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        JLabel titleLabel = new JLabel("<html>Sampath Auto<br>Care</html>");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -215,7 +215,7 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createVerticalStrut(10));
 
         // Footer
-        JLabel footerLabel = new JLabel("© 2026 GalleAuto Service");
+        JLabel footerLabel = new JLabel("© 2026 Sampath Auto Care");
         footerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         footerLabel.setForeground(new Color(100, 116, 139));
         footerLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

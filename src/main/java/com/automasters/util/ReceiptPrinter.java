@@ -53,10 +53,10 @@ public class ReceiptPrinter {
 
         // Header - Company name
         baos.write(ALIGN_CENTER);
-        // Header on single line - remove DOUBLE_WIDTH
         baos.write(DOUBLE_HEIGHT_ON);
         baos.write(BOLD_ON);
-        baos.write("GALLEAUTO SERVICE\n".getBytes());
+        baos.write("SAMPATH\n".getBytes());
+        baos.write("AUTO CARE\n".getBytes());
         baos.write(NORMAL_SIZE); // Reset
         baos.write("Vehicle Service Center\n".getBytes());
         baos.write(createLine('-'));
@@ -212,7 +212,8 @@ public class ReceiptPrinter {
         baos.write(INIT);
         baos.write(ALIGN_CENTER);
         baos.write(DOUBLE_SIZE_ON);
-        baos.write("GALLEAUTO SERVICE\n".getBytes());
+        baos.write("SAMPATH\n".getBytes());
+        baos.write("AUTO CARE\n".getBytes());
         baos.write(NORMAL_SIZE);
         baos.write("Printer Test\n".getBytes());
         baos.write(createLine('-'));

@@ -1,8 +1,8 @@
-﻿; GalleAuto Service Installer Script
+﻿; Sampath Auto Care Installer Script
 
-#define MyAppName "GalleAuto Service"
+#define MyAppName "Sampath Auto Care"
 #define MyAppVersion "1.0"
-#define MyAppPublisher "Shashimal Madhuwantha"
+#define MyAppPublisher "Nexus 3 Solutions"
 #define MyAppExeName "launch.bat"
 
 [Setup]
@@ -12,7 +12,7 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
-OutputBaseFilename=GalleAutoService-Setup-v1.0
+OutputBaseFilename=SampathAutoCare-Setup-v1.0
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

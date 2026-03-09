@@ -9,8 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>GalleAuto Service</name>
-    <description>GalleAuto Service Billing System</description>
+    <name>Sampath Auto Care</name>
+    <description>Sampath Auto Care Billing System</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

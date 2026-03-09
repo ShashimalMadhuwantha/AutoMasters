@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.automasters</groupId>
   <artifactId>automasters</artifactId>
-  <name>GalleAuto Service</name>
+  <name>Sampath Auto Care</name>
   <version>1.0-SNAPSHOT</version>
-  <description>GalleAuto Service Billing System</description>
+  <description>Sampath Auto Care Billing System</description>
   <build>
     <plugins>
       <plugin>

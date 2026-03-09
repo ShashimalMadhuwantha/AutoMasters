@@ -100,7 +100,7 @@ public class InvoiceDAO {
 
             if (count == 0) {
                 // First invoice - return default, user can edit
-                return "INV-00001";
+                return "INV-0000001";
             } else {
                 // Get the last invoice number and increment
                 String lastInvoiceNumber = session.createQuery(
